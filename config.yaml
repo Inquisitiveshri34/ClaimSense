@@ -1,0 +1,17 @@
+# ClaimSense configuration: the one source of truth for every threshold, seed,
+# path and model ID. Reference: docs/operations/configuration.md.
+# No secrets here (they come from environment variables, see .env.example).
+# Sections are added by the PR that first uses them.
+
+project:
+  name: claimsense
+  version: "1.0.0"                 # also used in the collectors' User-Agent
+  seed: 13                         # default seed for anything not seeded elsewhere
+  seeds: [13, 42, 2027]            # fine-tuning seeds (finetuning-spec.md §7)
+
+paths:
+  data_dir: data                   # overridable by CLAIMSENSE_DATA_DIR (Kaggle/Colab)
+  models_dir: models
+  index_dir: index/precedents
+  reports_dir: reports
+  cache_dir: data/cache            # LLM response cache (prompt-spec.md §6)
