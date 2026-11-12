@@ -1,0 +1,33 @@
+# Local mirror of the fast parts of CI (docs/operations/ci-cd.md §7).
+# Install once with `uv run pre-commit install`. Never commit with --no-verify.
+# Keep the ruff and black revisions equal to the versions pinned in uv.lock.
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.5
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 26.10.1
+    hooks:
+      - id: black
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files
+        args: [--maxkb=500]
+        exclude: ^uv\.lock$
+      - id: detect-private-key
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  - repo: local
+    hooks:
+      - id: block-data-paths
+        name: block data, PDFs and secrets files
+        entry: python scripts/block_data_paths.py
+        language: python
+        pass_filenames: true
