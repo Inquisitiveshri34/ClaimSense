@@ -1,0 +1,85 @@
+# CI for every push and every pull request into main (docs/operations/ci-cd.md §3).
+# No secrets, no data, no network inside tests. All five jobs are required checks.
+name: ci
+
+on:
+  push:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CLAIMSENSE_ENV: ci
+  HF_HUB_OFFLINE: "1"
+  CUDA_VISIBLE_DEVICES: ""
+  TOKENIZERS_PARALLELISM: "false"
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with: {python-version: "3.11", enable-cache: true}
+      - run: uv sync --frozen --all-extras
+      - run: uv run ruff check .
+      - run: uv run black --check .
+      - name: requirements-lock.txt matches uv.lock
+        run: |
+          uv export --frozen --all-extras --no-hashes > /tmp/req.txt
+          diff -u requirements-lock.txt /tmp/req.txt
+
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with: {python-version: "3.11", enable-cache: true}
+      - run: uv sync --frozen --all-extras
+      - run: >
+          uv run pytest -m "not slow and not local_data and not e2e"
+          --disable-socket --allow-unix-socket
+          --cov=src/claimsense --cov-report=term-missing --cov-report=xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: coverage, path: coverage.xml}
+
+  leak:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with: {python-version: "3.11", enable-cache: true}
+      - run: uv sync --frozen --all-extras
+      # Until PR 6 adds the first leak probe, pytest exit code 5 ("no tests
+      # collected") counts as success for this job only. PR 6 removes this.
+      - name: leak probes
+        run: |
+          rc=0
+          uv run pytest tests/leak -m leak --disable-socket -v || rc=$?
+          if [ "$rc" -eq 5 ]; then
+            echo "no leak probes collected (allowed until PR 6)"
+            exit 0
+          fi
+          exit "$rc"
+
+  e2e:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with: {python-version: "3.11", enable-cache: true}
+      - run: uv sync --frozen --all-extras
+      - run: uv run pytest tests/e2e -m e2e --disable-socket
+
+  guard:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash scripts/ci_guard.sh
