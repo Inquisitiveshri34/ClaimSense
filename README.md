@@ -23,6 +23,30 @@
 
 ---
 
+## Development setup
+
+> **Work in progress.** ClaimSense is being built in 18 pull requests ([PR plan](docs/planning/pr-plan.md)). The sections below this one describe the planned v1.0; until then, this section is what works today.
+
+Needs Python 3.11, [uv](https://docs.astral.sh/uv/) and GNU Make ([`docs/operations/setup.md`](docs/operations/setup.md) §2).
+
+```bash
+git clone https://github.com/Inquisitiveshri34/ClaimSense.git
+cd ClaimSense
+uv sync --frozen --all-extras          # create .venv and install exactly what uv.lock pins
+uv run pre-commit install              # git hooks: ruff, black, the data/PDF guard
+cp .env.example .env                   # then fill in only the keys you need
+make lint
+make test                              # passes with no data and no API keys
+```
+
+Before merging any PR, run the pre-merge gate. It must end with `ALL CHECKS PASSED`:
+
+```bash
+make pr-check                          # lock, lint, tests, leak probes, e2e, guard, test-count floor
+```
+
+---
+
 ## Contents
 
 1. [The problem](#1-the-problem)

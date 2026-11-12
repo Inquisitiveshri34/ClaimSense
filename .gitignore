@@ -1,0 +1,36 @@
+# --- environment and secrets ---
+.venv/
+.env
+configs/local.yaml
+
+# --- data: never committed (docs/responsible-ai/privacy-impact-assessment.md P-R5) ---
+data/*
+!data/.gitkeep
+!data/README.md
+tests/fixtures_local/
+
+# --- model weights, index, experiment store ---
+models/**/*.safetensors
+models/**/*.bin
+models/**/*.pt
+models/**/*.pth
+models/**/*.ckpt
+models/**/*.onnx
+models/**/*.gguf
+index/
+mlruns/
+
+# --- Python and tool caches ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.hypothesis/
+.coverage
+coverage.xml
+
+# --- OS ---
+.DS_Store
