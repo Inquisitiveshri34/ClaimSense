@@ -1,0 +1,152 @@
+# ClaimSense — PR Plan
+
+> 18 PRs in five phases: **Data (1–7) → Baselines (8–9) → GenAI core (10–13) → Evaluation (14–15) → Product (16–18).** A PR merges only when its *Done when* check passes in CI.
+
+**Author:** Diya Shrivastava
+
+---
+
+## Phase overview
+
+| Phase | PRs | Outcome |
+|---|---|---|
+| Data | 1–7 | Frozen, anonymised, leakage-safe dataset with a temporal split |
+| Baselines | 8–9 | EDA findings and the numbers every model must beat |
+| GenAI core | 10–13 | Fine-tuned, calibrated model + precedent retrieval + cited explanations |
+| Evaluation | 14–15 | One-command evaluation report and written failure analysis |
+| Product | 16–18 | `predict()` pipeline, Streamlit app, docs and v1.0 release |
+
+**Risk checkpoint after PR 3:** if fewer than ~800 usable Indian health awards survive parsing, train on UK + Ireland and use India as an out-of-distribution test set.
+
+---
+
+## Phase 1 — Data
+
+### PR 1 · Repo scaffold
+- **Branch:** `chore/scaffold`
+- **Deliverables:** `src/` package layout, `pyproject.toml`, pre-commit (ruff, black), pytest, GitHub Actions CI, `config.yaml`, README stub.
+- **Done when:** CI is green on a placeholder test.
+
+### PR 2 · Source audit
+- **Branch:** `docs/data-sources`
+- **Deliverables:** `DATA_SOURCES.md` (terms of use, robots.txt, rate limits per source), `data/raw/` git-ignored, data card template.
+- **Done when:** every source has a recorded licence and usage decision.
+
+### PR 3 · India collector
+- **Branch:** `feat/collect-cioins`
+- **Deliverables:** polite scraper for CIOINS health awards: month index → PDF download → manifest (URL, date, office, file hash); resumable.
+- **Done when:** a re-run downloads nothing new and the manifest has no gaps.
+
+### PR 4 · UK + Ireland collectors
+- **Branch:** `feat/collect-fos-fspo`
+- **Deliverables:** FOS listing scraper filtered to insurance; FSPO decisions filtered to health, keeping their outcome and conduct metadata.
+- **Done when:** all three manifests share one schema.
+
+### PR 5 · Parse and segment
+- **Branch:** `feat/parse-segment`
+- **Deliverables:** PDF → text (pdfplumber, Tesseract fallback); per-source segmenter into facts / insurer position / findings / award.
+- **Done when:** ≥ 95% correct on 50 hand-checked documents.
+
+### PR 6 · Labels, anonymisation, leak probes
+- **Branch:** `feat/label-anonymise`
+- **Deliverables:** outcome extractor → 3-class label; PII scrubber (Presidio + Indian patterns); leak-probe tests proving no findings or award text reaches the input; outcome-word lexicon check.
+- **Done when:** leak tests pass and a PII scan of 100 sampled documents finds 0 hits.
+
+### PR 7 · Dataset build
+- **Branch:** `feat/dataset-v1`
+- **Deliverables:** MinHash dedup; temporal split (train ≤ 2023, validation 2024, test 2025+); data card with class balance per source.
+- **Done when:** dataset v1 is frozen with a version hash.
+
+---
+
+## Phase 2 — Baselines
+
+### PR 8 · EDA notebook
+- **Branch:** `analysis/eda`
+- **Deliverables:** outcome rates by source, year, insurer type and rejection reason; text-length distributions; written findings.
+- **Done when:** the notebook renders end to end and findings are written up.
+
+### PR 9 · Classic baselines
+- **Branch:** `feat/baselines`
+- **Deliverables:** majority class; rejection-reason-only rules; TF-IDF + logistic regression; metrics logged.
+- **Done when:** macro-F1 and PR-AUC are logged for each baseline.
+
+---
+
+## Phase 3 — GenAI core
+
+### PR 10 · Embedding classifier + zero-shot LLM
+- **Branch:** `feat/embeddings-zeroshot`
+- **Deliverables:** sentence-embedding features + logistic regression; zero-shot LLM baseline on the validation set.
+- **Done when:** both beat TF-IDF, or the gap is explained in the PR description.
+
+### PR 11 · LoRA fine-tune
+- **Branch:** `feat/lora-finetune`
+- **Deliverables:** PEFT/LoRA on a small open model (or encoder) on Kaggle/Colab GPU; experiment tracking (MLflow or W&B); adapter weights saved.
+- **Done when:** the fine-tuned model beats every baseline on validation.
+
+### PR 12 · Calibration
+- **Branch:** `feat/calibration`
+- **Deliverables:** temperature scaling / isotonic fitted on validation; reliability diagrams; ECE and Brier score.
+- **Done when:** test ECE ≤ 0.05.
+
+### PR 13 · Precedent retrieval + cited explanations
+- **Branch:** `feat/retrieve-explain`
+- **Deliverables:** vector index over past decisions with a date filter; top-k precedents; LLM explanation grounded only in retrieved findings; NLI citation checker.
+- **Done when:** every explanation sentence cites a precedent; uncited sentences are dropped.
+
+---
+
+## Phase 4 — Evaluation
+
+### PR 14 · Evaluation report
+- **Branch:** `eval/report`
+- **Deliverables:** test metrics with bootstrap confidence intervals; breakdowns by source and rejection reason; India-only results; facts-only vs findings-included gap; cross-country generalisation.
+- **Done when:** the full report is generated by one command.
+
+### PR 15 · Error analysis and fairness
+- **Branch:** `eval/errors-fairness`
+- **Deliverables:** 50 misclassified cases categorised; performance by insurer type and claim size; explanation faithfulness on a 40-case hand-labelled set.
+- **Done when:** failure modes are written up with counts.
+
+---
+
+## Phase 5 — Product
+
+### PR 16 · Inference pipeline
+- **Branch:** `feat/pipeline`
+- **Deliverables:** `predict(facts)` → label, calibrated probability, precedents, explanation; abstention for low confidence or off-topic input.
+- **Done when:** pipeline tests pass and the abstain rate is reported.
+
+### PR 17 · Streamlit app
+- **Branch:** `feat/app`
+- **Deliverables:** Predict, Precedent Explorer, Model Card and Data Explorer pages; disclaimer on every page.
+- **Done when:** the app runs locally from one command.
+
+### PR 18 · Docs and release
+- **Branch:** `release/v1.0`
+- **Deliverables:** README with results table and architecture diagram; model card; data card; limitations; reproduction steps; tag v1.0.
+- **Done when:** a fresh clone reproduces the test metrics.
+
+---
+
+## Tracking checklist
+
+- [ ] PR 1 · Repo scaffold
+- [ ] PR 2 · Source audit
+- [ ] PR 3 · India collector *(risk checkpoint)*
+- [ ] PR 4 · UK + Ireland collectors
+- [ ] PR 5 · Parse and segment
+- [ ] PR 6 · Labels, anonymisation, leak probes
+- [ ] PR 7 · Dataset build
+- [ ] PR 8 · EDA notebook
+- [ ] PR 9 · Classic baselines
+- [ ] PR 10 · Embedding classifier + zero-shot LLM
+- [ ] PR 11 · LoRA fine-tune
+- [ ] PR 12 · Calibration
+- [ ] PR 13 · Precedent retrieval + cited explanations
+- [ ] PR 14 · Evaluation report
+- [ ] PR 15 · Error analysis and fairness
+- [ ] PR 16 · Inference pipeline
+- [ ] PR 17 · Streamlit app
+- [ ] PR 18 · Docs and release

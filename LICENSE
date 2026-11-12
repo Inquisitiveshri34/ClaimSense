@@ -1,0 +1,49 @@
+MIT License
+
+Copyright (c) 2026 Diya Shrivastava
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+-------------------------------------------------------------------------------
+SCOPE OF THIS LICENCE (not part of the MIT terms above)
+
+This licence covers the ClaimSense source code, tests, configuration files,
+notebooks and documentation written for this project, and the trained LoRA
+adapter weights, calibrator and threshold files in models/.
+
+It does NOT cover, and grants no rights in:
+
+  1. Ombudsman decisions, awards or any text derived from them, including the
+     processed dataset and the precedent index. These remain subject to the
+     terms of their publishers:
+       - Council for Insurance Ombudsmen (India), cioins.co.in
+       - Financial Ombudsman Service (UK), financial-ombudsman.org.uk
+       - Financial Services and Pensions Ombudsman (Ireland), fspo.ie
+     See DATA_SOURCES.md and docs/data/terms-of-use-audit.md for what may be
+     used and published for each source, and the required attribution.
+
+  2. Third-party base models downloaded at run time (for example
+     answerdotai/ModernBERT-base, BAAI/bge-small-en-v1.5,
+     cross-encoder/nli-deberta-v3-base). Each is governed by the licence on its
+     own model card.
+
+  3. Third-party Python packages, which are governed by their own licences.
+
+ClaimSense describes how similar past cases were decided. It is not legal
+advice; the ombudsman decides each case on its own facts.
