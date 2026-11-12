@@ -1,0 +1,4 @@
+# Config override for the end-to-end suite, deep-merged on top of config.yaml by
+# the `world` fixture (tests/e2e/conftest.py). It holds only the keys it changes:
+# small sizes and fast settings, added by the PR that adds each stage.
+# Paths are not set here; the world points every path inside its own temp root.
