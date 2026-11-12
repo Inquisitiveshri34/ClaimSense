@@ -19,7 +19,7 @@ CI check `changelog-updated` fails a PR that changes `src/`, `config.yaml`, `dat
 ## [Unreleased]
 
 ### Added
-- 
+- Repo scaffold, config, CI, e2e harness. (NFR-05, NFR-10)
 
 ---
 

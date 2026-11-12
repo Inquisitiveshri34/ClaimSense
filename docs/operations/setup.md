@@ -68,8 +68,8 @@ API keys go in `.env`, never in `config.yaml` or a notebook cell (`configuration
 
 ```bash
 # 1. clone
-git clone https://github.com/Inquisitiveshri34/claimsense.git
-cd claimsense
+git clone https://github.com/Inquisitiveshri34/ClaimSense.git
+cd ClaimSense
 
 # 2. create .venv and install exactly what uv.lock pins (dev + test extras)
 uv sync --frozen --all-extras
