@@ -2,3 +2,21 @@
 # the `world` fixture (tests/e2e/conftest.py). It holds only the keys it changes:
 # small sizes and fast settings, added by the PR that adds each stage.
 # Paths are not set here; the world points every path inside its own temp root.
+
+# PR 2: the synthetic world collects from fake sites, so every source is enabled.
+# The licence values below are test values for that world only; they say nothing
+# about the real publishers (see DATA_SOURCES.md for those).
+collect:
+  contact_email: "e2e@example.invalid"
+  min_interval_s: 2.0
+  sources:
+    cioins:
+      enabled: true
+      audit:
+        licence: "e2e synthetic world (test value)"
+    fos:
+      enabled: true
+      audit:
+        licence: "e2e synthetic world (test value)"
+    fspo:
+      enabled: true

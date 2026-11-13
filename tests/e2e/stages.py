@@ -28,6 +28,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from claimsense import config
+from claimsense.collect.sources import SourceRegistry, load_registry
 from claimsense.config import Config
 
 if TYPE_CHECKING:
@@ -39,3 +40,11 @@ def run_scaffold(world: E2EWorld) -> Config:
     if "scaffold" not in world.cache:
         world.cache["scaffold"] = config.load()
     return world.cache["scaffold"]
+
+
+def run_sources(world: E2EWorld) -> SourceRegistry:
+    """Stage 02: build the source registry from the world's config."""
+    if "sources" not in world.cache:
+        cfg = run_scaffold(world)
+        world.cache["sources"] = load_registry(cfg)
+    return world.cache["sources"]
