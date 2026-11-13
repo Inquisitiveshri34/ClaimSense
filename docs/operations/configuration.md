@@ -80,7 +80,8 @@ collect:
   jitter_s: 0.5
   timeout_s: 30
   max_retries: 3
-  backoff_base_s: 10
+  backoff_base_s: 10               # 10, 20, 40 s between retries after a timeout or 5xx
+  retry_after_default_s: 300       # wait after 429/503 when the site sends no Retry-After (PR 3)
   stop_after_consecutive_failures: 10
   sources:
     cioins: {enabled: false, start: "https://cioins.co.in/AwardsHArchive",
@@ -93,7 +94,7 @@ collect:
 | Key | Tag | Note |
 |---|---|---|
 | `contact_email` | — | Your own address; it appears in the User-Agent. Kept in `config.yaml` because publishers must be able to see it, but **leave it empty in commits** and set it through a local override file if you prefer (`configs/local.yaml`, git-ignored) |
-| `min_interval_s`, `jitter_s`, retries | — | Politeness only; do not change what is collected |
+| `min_interval_s`, `jitter_s`, retries, `backoff_base_s`, `retry_after_default_s` | — | Politeness only; do not change what is collected |
 | `sources.*.enabled` | **V** | Flip only after `../data/terms-of-use-audit.md` clears the source |
 | `fos.health_keywords`, `*.products`, `*.product_filter` | **V** | Decide which documents count as health |
 | `sources.*.audit.*` | — | The audit decision for the source; see below |

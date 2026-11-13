@@ -21,6 +21,7 @@ CI check `changelog-updated` fails a PR that changes `src/`, `config.yaml`, `dat
 ### Added
 - Repo scaffold, config, CI, e2e harness. (NFR-05, NFR-10)
 - Source audit: decision table per source, `collect` config with the source registry, and the `gitignore-covers-data` guard rule. (NFR-08, NFR-09, R2)
+- CIOINS collector with the shared polite session, SQLite manifest, `collect` command line, fake transport and clock for tests, fixture manifest, and the synthetic e2e world. (FR-01, FR-02, FR-03, NFR-08, R1, R14)
 
 ---
 
