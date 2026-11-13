@@ -12,6 +12,8 @@
 #   no-secrets-files      no .env, kaggle.json or *.pem
 #   no-network-in-tests   no http:// or https:// in tests/ outside
 #                         tests/fixtures/**/urlmap*.yaml and tests/e2e/corpus.py
+#   gitignore-covers-data every data folder and mlruns/ is ignored by git and
+#                         named on its own line in .gitignore
 
 set -u
 
@@ -43,6 +45,22 @@ report "no-network-in-tests" \
   "$(git grep -nIE 'https?://' -- tests \
        ':(exclude,glob)tests/fixtures/**/urlmap*.yaml' \
        ':(exclude)tests/e2e/corpus.py')"
+
+gitignore_gaps() {
+  # A catch-all pattern is not enough: each folder must also have its own line,
+  # so that deleting the line is caught even while another pattern still matches.
+  local dir
+  for dir in data/raw data/interim data/processed data/cache data/manifests \
+             data/_pii_quarantine mlruns; do
+    if ! git check-ignore -q --no-index "$dir/guard-probe" 2>/dev/null; then
+      echo "$dir/ is not ignored by git"
+    elif ! grep -qxF "$dir/" .gitignore 2>/dev/null; then
+      echo "$dir/ has no line of its own in .gitignore"
+    fi
+  done
+}
+
+report "gitignore-covers-data" "$(gitignore_gaps)"
 
 if [ "$failed" -ne 0 ]; then
   echo "GUARD FAILED"
