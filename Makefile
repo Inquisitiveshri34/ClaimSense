@@ -1,7 +1,7 @@
 # ClaimSense: every routine command (docs/operations/setup.md §3.2).
 # All targets run inside the project environment through `uv run`.
 
-.PHONY: lint fmt test test-leak test-e2e test-data test-slow pr-check
+.PHONY: lint fmt test test-leak test-e2e test-data test-slow pr-check collect verify-data
 
 # Tests never touch the network (docs/testing/test-strategy.md §1).
 NET_BLOCK := --disable-socket --allow-unix-socket
@@ -39,3 +39,15 @@ test-slow:
 
 pr-check:
 	bash scripts/pr_check.sh
+
+# Collect one source, resuming from the manifest (docs/data/collection-runbook.md §3):
+#   make collect SOURCE=cioins ARGS="--max-docs 20"     or     ARGS="--dry-run"
+SOURCE ?=
+ARGS ?=
+collect:
+	@test -n "$(SOURCE)" || { echo 'usage: make collect SOURCE=<source> [ARGS="--max-docs N"]'; exit 2; }
+	uv run python -m claimsense.collect run --source $(SOURCE) $(ARGS)
+
+# Re-hash every stored file against the manifest; fails on any problem.
+verify-data:
+	uv run python -m claimsense.collect verify

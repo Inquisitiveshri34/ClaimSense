@@ -1,0 +1,5 @@
+# Synthetic robots.txt for collector tests. It is NOT a copy of the real file
+# (capture that yourself: docs/data/terms-of-use-audit.md section 3).
+User-agent: *
+Crawl-delay: 5
+Disallow: /admin/

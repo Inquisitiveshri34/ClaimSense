@@ -14,7 +14,7 @@ ClaimSense learns from **published decisions of three insurance ombudsmen**: rea
 | **What is used** | Health-insurance (mediclaim) awards | Insurance decisions, filtered to medical/health | Decisions for "Health, Accident and Other" products |
 | **Outcome label** | Free text in the award order, mapped by rules | Upheld / Not upheld (listing metadata) | Rejected / Partially / Substantially / Upheld (metadata) |
 | **Role** | Primary target domain | Training volume | Clean labels, structured reasons |
-| **Entry point** | [cioins.co.in/AwardsHArchive](https://cioins.co.in/AwardsHArchive) | [FOS decisions search](https://www.financial-ombudsman.org.uk/decisions-case-studies/ombudsman-decisions/SearchDecisions) | [fspo.ie](https://www.fspo.ie) |
+| **Entry point** | **Unconfirmed.** `cioins.co.in/AwardsHArchive` was not found when checked on 2026-11-13. Replace with the live listing URL once confirmed (the site's Archives and Download pages are the places to look). | [FOS decisions search](https://www.financial-ombudsman.org.uk/decisions-case-studies/ombudsman-decisions/SearchDecisions) | [fspo.ie](https://www.fspo.ie) |
 
 ---
 

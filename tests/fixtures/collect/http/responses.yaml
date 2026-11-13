@@ -1,0 +1,16 @@
+# Error-response scenarios for the polite session (test-fixtures.md §4). Synthetic.
+#
+# Each scenario lists what the fake site answers on successive requests to ONE
+# URL; the last entry repeats. Entries use the directives of
+# tests/stubs/fake_http.py; a plain name is a file in this folder, served with 200.
+# The test supplies the URL, so this file holds none.
+not_found:                         ["@404"]
+rate_limited_with_retry_after:     ["@429:30", "body.txt"]
+rate_limited_without_retry_after:  ["@429", "body.txt"]
+unavailable_without_retry_after:   ["@503", "body.txt"]
+forbidden:                         ["@403"]
+timeout_then_ok:                   ["@timeout", "body.txt"]
+always_timeout:                    ["@timeout"]
+truncated_then_ok:                 ["@truncated:body.txt", "body.txt"]
+always_truncated:                  ["@truncated:body.txt"]
+server_error_then_ok:              ["@500", "body.txt"]

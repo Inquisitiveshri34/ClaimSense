@@ -33,7 +33,8 @@ collect:
   jitter_s: 0.5              # random 0–0.5 s added to each wait
   timeout_s: 30
   max_retries: 3
-  backoff_base_s: 10         # 10, 20, 40 s between retries
+  backoff_base_s: 10         # 10, 20, 40 s between retries after a timeout or 5xx
+  retry_after_default_s: 300 # wait after 429/503 when the site sends no Retry-After
   stop_after_consecutive_failures: 10
   sources:
     cioins:
@@ -56,23 +57,32 @@ collect:
 ## 3. Commands
 
 ```bash
-# one source, full run (resumes automatically)
-python -m claimsense.collect fspo
+# one source, full run (resumes automatically); same as: make collect SOURCE=fspo
+python -m claimsense.collect run --source fspo
 
-# dry run: list what would be fetched, write nothing
-python -m claimsense.collect fspo --dry-run
+# dry run: fetch the listings, list what would be downloaded, write nothing
+python -m claimsense.collect run --source fspo --dry-run
 
-# limit for a smoke test
-python -m claimsense.collect fspo --max-docs 20
+# limit for a smoke test: stop after 20 new documents
+python -m claimsense.collect run --source fspo --max-docs 20
 
-# a date window (inclusive)
-python -m claimsense.collect fspo --from 2019-01-01 --to 2025-12-31
+# check the store against the manifest (exit code 1 on any problem); same as: make verify-data
+python -m claimsense.collect verify
 
-# report: counts per status from manifest + crawl_log
+# report: counts by status (crawl_log), decision year and office (manifest)
 python -m claimsense.collect report
 ```
 
-Each run writes a log to `data/manifests/logs/<source>-<UTC timestamp>.log` and ends with a one-line summary:
+A run refuses to start if the source has `enabled: false`, if its licence is still unknown, or (unless `--dry-run`) if `collect.contact_email` is empty. Put your email in a git-ignored override file and name it in `CLAIMSENSE_CONFIG`:
+
+```bash
+echo 'collect: {contact_email: "you@example.org"}' > configs/local.yaml
+CLAIMSENSE_CONFIG=configs/local.yaml python -m claimsense.collect run --source fspo --max-docs 20
+```
+
+Not built yet: a `--from/--to` date window (needed for FOS, PR 4), `--refilter`, and a per-run log file.
+
+Each run ends with a one-line summary:
 
 ```text
 fspo: listed 1,240 · stored 1,102 · filtered 121 · duplicate 9 · failed 8 · skipped(already have) 0 · 01:12:40
@@ -86,12 +96,13 @@ Paste that summary into the PR description (FR-01c).
 
 | Rule | Value | Enforced by |
 |---|---|---|
-| Wait between any two requests to the same host | `max(min_interval_s, robots Crawl-delay)` + jitter | `collect/http.py` single shared limiter |
+| Wait between any two requests to the same host | `max(min_interval_s, robots Crawl-delay)` + jitter | `PoliteSession` in `collect/base.py`, the single shared limiter |
 | Concurrency | 1 worker, 1 connection | No thread or async pool in collectors |
 | User-Agent | Project name, version, contact email | Set once in the session |
-| Retries | ≤ 3, exponential backoff | `collect/http.py` |
-| Respect `429` / `503` | Honour `Retry-After`; if absent, wait 5 minutes | `collect/http.py` |
-| Hard stop | 10 consecutive failures → stop the run | Runner |
+| robots.txt | Read once per host before the first request; a disallowed path is never requested | `PoliteSession` |
+| Retries | ≤ `max_retries` (3) per URL; after a timeout, a cut-off body or a 5xx wait `backoff_base_s` × 2ⁿ (10, 20, 40 s) | `PoliteSession` |
+| Respect `429` / `503` | Honour `Retry-After`; if absent, wait `retry_after_default_s` (5 minutes) | `PoliteSession` |
+| Hard stop | A `403`, or 10 consecutive failed requests (`stop_after_consecutive_failures`) → stop the run | `PoliteSession` |
 | Time of day | Prefer the publisher's night-time (India 00:00–06:00 IST; UK/IE 00:00–06:00 local) | Operator |
 
 Never run two collectors against the same host at the same time. Running FOS and FSPO together is fine (different hosts).
@@ -100,7 +111,7 @@ Never run two collectors against the same host at the same time. Running FOS and
 
 ## 5. How resuming works (FR-03)
 
-1. Before fetching a listing page, the collector checks `crawl_log`; a URL with status `stored`, `filtered` or `duplicate` is skipped.
+1. Listing pages are read again on every run (a few requests), so new documents are found. Before fetching a **document**, the collector checks `crawl_log`; a URL with status `filtered` or `duplicate` is skipped.
 2. Before fetching a document, it checks `manifest.doc_id`; if present **and** the file on disk hashes to `file_sha256`, it is skipped.
 3. A file is first written to `data/raw/<source>/.partial/`, hashed, then moved into place, and only then is the manifest row inserted (one transaction). An interrupted run therefore leaves at most a stray `.partial` file, never a manifest row without a file.
 4. `failed` URLs are retried on the next run; `filtered` URLs are not, unless `--refilter` is passed (used when keyword lists change).

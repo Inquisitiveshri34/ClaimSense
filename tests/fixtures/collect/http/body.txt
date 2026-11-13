@@ -1,0 +1,2 @@
+Synthetic response body used by the error-response scenarios. It contains no real data.
+The text is long enough that a body cut in half is clearly shorter than the full one.
