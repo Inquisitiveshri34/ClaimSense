@@ -22,11 +22,14 @@ import json
 import os
 import sys
 from collections.abc import Mapping, Sequence
+from datetime import date
 from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import BaseModel, ConfigDict, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
+
+from claimsense.schema import SOURCES
 
 CONFIG_FILENAME = "config.yaml"
 OVERRIDE_ENV_VAR = "CLAIMSENSE_CONFIG"
@@ -34,8 +37,20 @@ OVERRIDE_ENV_VAR = "CLAIMSENSE_CONFIG"
 # Registry of the keys tagged **V** in configuration.md §3: the keys that are
 # part of the dataset ``config_hash``. Each entry is a dotted path into the
 # resolved config and may name a single key or a whole section. The PR that
-# adds a V key to the schema adds it here. No V key exists yet.
-V_KEYS: tuple[str, ...] = ()
+# adds a V key to the schema adds it here.
+V_KEYS: tuple[str, ...] = (
+    # collect (configuration.md §3.2): which documents are collected as health decisions
+    "collect.sources.cioins.enabled",
+    "collect.sources.cioins.products",
+    "collect.sources.fos.enabled",
+    "collect.sources.fos.product_filter",
+    "collect.sources.fos.health_keywords",
+    "collect.sources.fspo.enabled",
+    "collect.sources.fspo.product_filter",
+)
+
+# NFR-08: never more than one request every two seconds to a source.
+MIN_INTERVAL_FLOOR_S = 2.0
 
 
 class ConfigError(ValueError):
@@ -67,11 +82,75 @@ class PathsConfig(_Section):
     cache_dir: Path
 
 
+class SourceAudit(_Section):
+    """The audit decision for one source (docs/data/terms-of-use-audit.md, DATA_SOURCES.md)."""
+
+    base_url: str
+    robots_url: str
+    licence: str
+    redistribution_allowed: bool
+    audit_date: date
+
+
+class _SourceSection(_Section):
+    """Keys every source has under ``collect.sources``."""
+
+    enabled: bool
+    audit: SourceAudit
+
+
+class CioinsSourceConfig(_SourceSection):
+    """``collect.sources.cioins``: Council for Insurance Ombudsmen (India)."""
+
+    start: str
+    products: tuple[str, ...]
+
+
+class FosSourceConfig(_SourceSection):
+    """``collect.sources.fos``: Financial Ombudsman Service (UK)."""
+
+    product_filter: str
+    health_keywords: tuple[str, ...]
+
+
+class FspoSourceConfig(_SourceSection):
+    """``collect.sources.fspo``: Financial Services and Pensions Ombudsman (Ireland)."""
+
+    product_filter: str
+
+
+class SourcesConfig(_Section):
+    """``collect.sources``: exactly one section per name in ``claimsense.schema.SOURCES``."""
+
+    cioins: CioinsSourceConfig
+    fos: FosSourceConfig
+    fspo: FspoSourceConfig
+
+
+if tuple(SourcesConfig.model_fields) != SOURCES:
+    raise RuntimeError("SourcesConfig must have one field per claimsense.schema.SOURCES, in order")
+
+
+class CollectConfig(_Section):
+    """The ``collect`` section (configuration.md §3.2, collection-runbook.md §2)."""
+
+    contact_email: str
+    user_agent: str
+    min_interval_s: float = Field(ge=MIN_INTERVAL_FLOOR_S)
+    jitter_s: float = Field(ge=0)
+    timeout_s: float = Field(gt=0)
+    max_retries: int = Field(ge=0)
+    backoff_base_s: float = Field(gt=0)
+    stop_after_consecutive_failures: int = Field(ge=1)
+    sources: SourcesConfig
+
+
 class Config(_Section):
     """The whole resolved configuration."""
 
     project: ProjectConfig
     paths: PathsConfig
+    collect: CollectConfig
 
 
 def repo_root() -> Path:

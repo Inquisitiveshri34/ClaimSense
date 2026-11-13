@@ -15,3 +15,47 @@ paths:
   index_dir: index/precedents
   reports_dir: reports
   cache_dir: data/cache            # LLM response cache (prompt-spec.md §6)
+
+# Collection (PRs 3-4). Reference: configuration.md §3.2, collection-runbook.md §2.
+collect:
+  contact_email: ""                # REQUIRED before any live run; collectors refuse to start if empty
+  user_agent: "ClaimSense/{version} (non-commercial research; contact: {contact_email})"
+  min_interval_s: 3.0              # NFR-08: validation rejects < 2.0
+  jitter_s: 0.5
+  timeout_s: 30
+  max_retries: 3
+  backoff_base_s: 10
+  stop_after_consecutive_failures: 10
+  # `enabled` follows docs/data/terms-of-use-audit.md: flip a source only after
+  # the audit clears it. Each `audit` block is the machine-readable copy of the
+  # decision table in DATA_SOURCES.md; keep the two identical.
+  sources:
+    cioins:
+      enabled: false
+      start: "https://cioins.co.in/AwardsHArchive"
+      products: [individual_mediclaim, group_mediclaim, overseas_mediclaim]
+      audit:
+        base_url: "https://cioins.co.in"
+        robots_url: "https://cioins.co.in/robots.txt"
+        licence: "UNKNOWN — to verify"
+        redistribution_allowed: false
+        audit_date: "2026-11-12"
+    fos:
+      enabled: false
+      product_filter: "Insurance"
+      health_keywords: [medical, health, hospital, surgery, treatment, "private medical", "critical illness"]
+      audit:
+        base_url: "https://www.financial-ombudsman.org.uk"
+        robots_url: "https://www.financial-ombudsman.org.uk/robots.txt"
+        licence: "UNKNOWN — to verify"
+        redistribution_allowed: false
+        audit_date: "2026-11-12"
+    fspo:
+      enabled: true
+      product_filter: "Health, Accident and Other"
+      audit:
+        base_url: "https://www.fspo.ie"
+        robots_url: "https://www.fspo.ie/robots.txt"
+        licence: "Re-use of Public Sector Information (PSI) Regulations; attribution required"
+        redistribution_allowed: true
+        audit_date: "2026-11-12"

@@ -18,6 +18,9 @@ from claimsense import config
 pytestmark = pytest.mark.usefixtures("clean_env")
 
 SECRET_WORDS = ("key", "token", "secret")
+# Keys whose name contains a secret word but which are not secrets. Each entry is
+# an exact dotted key; anything else that matches must be empty.
+NOT_SECRETS = frozenset({"collect.sources.fos.health_keywords"})
 
 
 def _base_data() -> dict[str, Any]:
@@ -28,6 +31,29 @@ def _base_data() -> dict[str, Any]:
 def _write_yaml(path: Path, data: dict[str, Any]) -> Path:
     path.write_text(yaml.safe_dump(data), encoding="utf-8")
     return path
+
+
+def _with(cfg: config.Config, patch: dict[str, Any]) -> config.Config:
+    """Return ``cfg`` with ``patch`` deep-merged on top, validated again."""
+    return config.Config.model_validate(config.deep_merge(cfg.model_dump(mode="json"), patch))
+
+
+def _changed(value: Any) -> Any:
+    """Return a value of the same type that differs from ``value``."""
+    if isinstance(value, bool):
+        return not value
+    if isinstance(value, str):
+        return value + " (changed)"
+    if isinstance(value, list):
+        return [*value, "changed"]
+    raise TypeError(f"no rule to change a value of type {type(value).__name__}")
+
+
+def _nested(dotted: str, value: Any) -> dict[str, Any]:
+    """Turn ``a.b.c`` and a value into ``{"a": {"b": {"c": value}}}``."""
+    for part in reversed(dotted.split(".")):
+        value = {part: value}
+    return value
 
 
 def _walk(data: Any, prefix: str = "") -> Iterator[tuple[str, Any]]:
@@ -72,6 +98,8 @@ def test_no_secrets() -> None:
     resolved = config.load().model_dump(mode="json")
     for dotted, value in _walk(resolved):
         name = dotted.rsplit(".", 1)[-1].lower()
+        if dotted in NOT_SECRETS:
+            continue
         if any(word in name for word in SECRET_WORDS):
             assert value in ("", None), f"{dotted} looks like a secret and must be empty"
 
@@ -102,3 +130,43 @@ def test_cli_check_exit_codes(tmp_path: Path) -> None:
     )
     assert bad.returncode == 1
     assert "colour" in bad.stderr
+
+
+def test_min_interval_floor() -> None:
+    # NFR-08: an interval below the floor is rejected at load, not at request time.
+    base = config.load()
+    floor = config.MIN_INTERVAL_FLOOR_S
+
+    assert _with(base, {"collect": {"min_interval_s": floor}}).collect.min_interval_s == floor
+    with pytest.raises(ValidationError, match="min_interval_s"):
+        _with(base, {"collect": {"min_interval_s": floor - 0.5}})
+
+
+@pytest.mark.parametrize("key", ["jitter_s", "max_retries"])
+def test_negative_collect_values_rejected(key: str) -> None:
+    with pytest.raises(ValidationError, match=key):
+        _with(config.load(), {"collect": {key: -1}})
+
+
+def test_config_hash_covers_v_keys() -> None:
+    base = config.load()
+    base_hash = config.config_hash(base)
+
+    fspo_enabled = base.collect.sources.fspo.enabled
+    flipped = _with(base, {"collect": {"sources": {"fspo": {"enabled": not fspo_enabled}}}})
+    assert config.config_hash(flipped) != base_hash
+
+    # timeout_s is politeness only (configuration.md §3.2): it does not change what is collected.
+    slower = _with(base, {"collect": {"timeout_s": base.collect.timeout_s + 1}})
+    assert slower != base
+    assert config.config_hash(slower) == base_hash
+
+    # Changing any V key changes the hash.
+    resolved = base.model_dump(mode="json")
+    assert config.V_KEYS
+    for key in config.V_KEYS:
+        value: Any = resolved
+        for part in key.split("."):
+            value = value[part]
+        changed = _with(base, _nested(key, _changed(value)))
+        assert config.config_hash(changed) != base_hash, key
