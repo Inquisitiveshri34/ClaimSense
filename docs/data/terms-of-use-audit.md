@@ -18,6 +18,25 @@
 
 **Consequence for the plan:** two of three sources, including the primary target domain, are blocked until permission arrives. This is risk **R2** firing in PR 2, earlier than the PR 3 data-volume checkpoint. See §6 for what happens while waiting.
 
+### 1.1 Decision table
+
+The record a collector depends on, one row per fact. `UNKNOWN — to verify` means nobody has checked it yet; it is never a guess. This table is the same as "Audit record per source" in [`DATA_SOURCES.md`](../../DATA_SOURCES.md); change both together. Its URL, licence, redistribution, `enabled` and audit-date rows are the same values as `collect.sources.<name>` in `config.yaml`, which `claimsense.collect.sources` reads.
+
+| | CIOINS (India) | FOS (UK) | FSPO (Ireland) |
+|---|---|---|---|
+| **URL** | `https://cioins.co.in` | `https://www.financial-ombudsman.org.uk` | `https://www.fspo.ie` |
+| **Terms of use** (page, date read) | *Terms & Conditions* PDF, `cioins.co.in/notification/Terms and Conditions.pdf`, read 2026-11-12 | *Legal information*, `financial-ombudsman.org.uk/legal-policy`, read 2026-11-12 | *Re-use of Public Sector Information*, `fspo.ie/governance/reuse.asp`, read 2026-11-12 |
+| **robots.txt rules** for the paths used | UNKNOWN — to verify | UNKNOWN — to verify | UNKNOWN — to verify |
+| **Crawl delay** stated in robots.txt | UNKNOWN — to verify | UNKNOWN — to verify | UNKNOWN — to verify |
+| **Licence** | UNKNOWN — to verify | UNKNOWN — to verify | Re-use of Public Sector Information (PSI) Regulations; attribution required |
+| **Redistribution** of derived, anonymised text | Not allowed | Not allowed | Allowed, with attribution |
+| **`enabled`** in `config.yaml` | `false` | `false` | `true` |
+| **Audit date** | 2026-11-12 | 2026-11-12 | 2026-11-12 |
+
+- **Licence `UNKNOWN` for CIOINS and FOS.** Neither site offers a licence: CIOINS prohibits unauthorised copying and FOS requires prior permission for storage. A licence exists only once a permission reply states its terms (§7.2). Until that is recorded here and in `config.yaml`, the source registry refuses to load if either source is enabled (`SourceNotCleared`).
+- **robots.txt and crawl delay** have not been captured for any source (§3 has the command). Until they are, `collect.min_interval_s` applies; a higher stated crawl delay replaces it.
+- **FSPO is enabled on its terms alone.** Its robots.txt row must be verified before the first live collection run (PR 4).
+
 ---
 
 ## 2. What each source's terms say

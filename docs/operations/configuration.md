@@ -96,6 +96,23 @@ collect:
 | `min_interval_s`, `jitter_s`, retries | — | Politeness only; do not change what is collected |
 | `sources.*.enabled` | **V** | Flip only after `../data/terms-of-use-audit.md` clears the source |
 | `fos.health_keywords`, `*.products`, `*.product_filter` | **V** | Decide which documents count as health |
+| `sources.*.audit.*` | — | The audit decision for the source; see below |
+
+Each source also carries an `audit` block (added in PR 2), the machine-readable copy of the decision table in `DATA_SOURCES.md` and `../data/terms-of-use-audit.md` §1.1:
+
+```yaml
+    fspo:
+      enabled: true
+      product_filter: "Health, Accident and Other"
+      audit:
+        base_url: "https://www.fspo.ie"
+        robots_url: "https://www.fspo.ie/robots.txt"
+        licence: "Re-use of Public Sector Information (PSI) Regulations; attribution required"
+        redistribution_allowed: true
+        audit_date: "2026-11-12"
+```
+
+`claimsense.collect.sources` builds the source registry from these blocks. A source with `enabled: true` whose `licence` starts with `UNKNOWN` stops the registry from loading (`SourceNotCleared`), so a source cannot be switched on before its terms are recorded. `redistribution_allowed` decides which fixtures may be committed for the source (`../testing/test-fixtures.md` §2).
 
 ### 3.3 `parse`, `segment`, `label`, `anonymise` (PRs 5–6)
 

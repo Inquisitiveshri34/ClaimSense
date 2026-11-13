@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -10,6 +11,7 @@ import pytest
 from claimsense import config
 
 GUARD = config.repo_root() / "scripts" / "ci_guard.sh"
+GITIGNORE = config.repo_root() / ".gitignore"
 
 # Built from parts so that this file itself passes the no-network-in-tests rule.
 URL = "https" + "://example.org"
@@ -19,6 +21,9 @@ URL = "https" + "://example.org"
 def repo(tmp_path: Path) -> Path:
     """An empty git repository holding only the files the guard allows."""
     subprocess.run(["git", "init", "--quiet", str(tmp_path)], check=True)
+    # The rule gitignore-covers-data (PR 2) needs the project's ignore rules.
+    shutil.copy(GITIGNORE, tmp_path / ".gitignore")
+    subprocess.run(["git", "add", "--", ".gitignore"], cwd=tmp_path, check=True)
     _track(tmp_path, "data/.gitkeep")
     _track(tmp_path, "data/README.md", "local only\n")
     _track(tmp_path, ".env.example", "GROQ_API_KEY=\n")
@@ -90,3 +95,23 @@ def test_url_allowed_in_url_maps_and_corpus(repo: Path, relative: str) -> None:
     result = _run_guard(repo)
     assert result.returncode == 0, result.stdout
     assert "PASS  no-network-in-tests" in result.stdout
+
+
+def test_removing_data_raw_from_gitignore_fails(repo: Path) -> None:
+    gitignore = repo / ".gitignore"
+    lines = gitignore.read_text(encoding="utf-8").splitlines()
+    assert "data/raw/" in lines
+    gitignore.write_text("\n".join(line for line in lines if line != "data/raw/") + "\n", "utf-8")
+
+    result = _run_guard(repo)
+    assert result.returncode != 0
+    assert "FAIL  gitignore-covers-data" in result.stdout
+    assert "data/raw/" in result.stdout
+
+
+def test_missing_gitignore_fails(repo: Path) -> None:
+    (repo / ".gitignore").unlink()
+    result = _run_guard(repo)
+    assert result.returncode != 0
+    assert "FAIL  gitignore-covers-data" in result.stdout
+    assert "mlruns/ is not ignored" in result.stdout

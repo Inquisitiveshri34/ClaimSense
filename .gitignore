@@ -7,6 +7,13 @@ configs/local.yaml
 data/*
 !data/.gitkeep
 !data/README.md
+# Named one by one as well: the guard rule gitignore-covers-data requires each line.
+data/raw/
+data/interim/
+data/processed/
+data/cache/
+data/manifests/
+data/_pii_quarantine/
 tests/fixtures_local/
 
 # --- model weights, index, experiment store ---
