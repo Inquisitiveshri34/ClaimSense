@@ -1,0 +1,133 @@
+# Fixture manifest (docs/testing/test-fixtures.md §9): one entry per file under
+# tests/fixtures/. tests/test_fixtures_manifest.py fails on an unlisted file, a hash
+# mismatch, a missing used_by path, personal data, or a file over the size limits.
+#
+# kind: synthetic | saved-redacted | saved
+#   - synthetic: written for the tests; every person, place and number is fictional.
+#   - saved-redacted: a real page with names, titles and references replaced
+#     (scripts/fixtures/redact_html.py); needs captured and redaction_reviewed_by.
+#   - saved: an unchanged capture; only for a source cleared for redistribution.
+# After changing a fixture, update its sha256 (shasum -a 256 <file>).
+
+- path: collect/cioins/award_text.pdf
+  kind: synthetic
+  source: cioins
+  sha256: "8e4a24d69ef2f7fc29a378f479ea8fd6d56a02b07d0c25d01c6206168698a7db"
+  contains_personal_data: false
+  used_by:
+    - tests/collect/test_resume.py
+    - tests/collect/test_verify.py
+    - tests/collect/test_cioins_listing.py
+  notes: "Health award with a text layer. Built by _build/make_pdfs.py from _build/sources/cioins_award_text.txt"
+
+- path: collect/cioins/award_scan.pdf
+  kind: synthetic
+  source: cioins
+  sha256: "82cd4eb876f81ea0ad755b2ad65c7e47fc152f3d2a8aebd888f1ee99309f32aa"
+  contains_personal_data: false
+  used_by:
+    - tests/collect/test_resume.py
+    - tests/collect/test_verify.py
+  notes: "Image-only page (no text layer), like a scanned award. Built by _build/make_pdfs.py from _build/sources/cioins_award_scan.txt"
+
+- path: collect/cioins/award_nonhealth.pdf
+  kind: synthetic
+  source: cioins
+  sha256: "4903fa06efb0363368f702d0c7cfff0c5bffe4461ad1523c06ccb685914c5401"
+  contains_personal_data: false
+  used_by:
+    - tests/collect/test_cioins_listing.py
+  notes: "Motor award: must be filtered and never downloaded. Built by _build/make_pdfs.py"
+
+- path: collect/cioins/robots.txt
+  kind: synthetic
+  source: cioins
+  sha256: "48b3ec806a648451f6960d41421281bb16fe9348b53eff81281fc5aed2acb183"
+  contains_personal_data: false
+  used_by:
+    - tests/collect/test_politeness.py
+  notes: "Written for the tests (Crawl-delay above min_interval_s, one disallowed folder). Not a copy of the real robots.txt"
+
+- path: collect/http/responses.yaml
+  kind: synthetic
+  sha256: "474656d3b7ea6a8c5caabb438e192f2b0f863da27c83647e45e4fe6cbf15f055"
+  contains_personal_data: false
+  used_by:
+    - tests/collect/test_politeness.py
+    - tests/collect/helpers.py
+  notes: "Error-response scenarios: 404, 429 with and without Retry-After, 503, 403, timeout, truncated body, 500"
+
+- path: collect/http/body.txt
+  kind: synthetic
+  sha256: "bc4efaa7d513a862736d3cc311c58f7258f8bfadd7b8a1266da63996c447790f"
+  contains_personal_data: false
+  used_by:
+    - tests/collect/test_politeness.py
+  notes: "Body served with status 200 by the error-response scenarios"
+
+- path: _build/sources/cioins_award_text.txt
+  kind: synthetic
+  source: cioins
+  sha256: "b2598d71b35b6b121b8cd1682b40ee68b34688838faa5275f9c5748e8832323f"
+  contains_personal_data: false
+  used_by:
+    - tests/fixtures/_build/make_pdfs.py
+  notes: "Text of award_text.pdf. Fictional complainant, insurer, hospital, policy number and PIN"
+
+- path: _build/sources/cioins_award_scan.txt
+  kind: synthetic
+  source: cioins
+  sha256: "56f6f1994a9e73d8dcbac3e1cfca852c4afdef39b9166683238dd5a3a20eb7cc"
+  contains_personal_data: false
+  used_by:
+    - tests/fixtures/_build/make_pdfs.py
+  notes: "Text of award_scan.pdf. Fictional throughout"
+
+- path: _build/sources/cioins_award_nonhealth.txt
+  kind: synthetic
+  source: cioins
+  sha256: "861bd8dee710d30cc8ab940eabaf70433c613607a36e2842a612444be6d8b26a"
+  contains_personal_data: false
+  used_by:
+    - tests/fixtures/_build/make_pdfs.py
+  notes: "Text of award_nonhealth.pdf. Fictional throughout"
+
+- path: collect/cioins/urlmap.yaml
+  kind: synthetic
+  source: cioins
+  sha256: "6061569b586e7345a0f5c521fab6ae0c4524126200b71f6af1ac84e26d98e6c8"
+  contains_personal_data: false
+  used_by:
+    - tests/collect/test_cioins_listing.py
+    - tests/collect/test_resume.py
+    - tests/collect/test_verify.py
+  notes: "URL map of the fake CIOINS site. Paths are illustrative; the real site's paths are unconfirmed"
+
+- path: collect/cioins/archive_index.html
+  kind: synthetic
+  source: cioins
+  sha256: "9be37ffca936bc90a1237c645c6cf2f17476e9b72b6389ae7fff636580aa86ed"
+  contains_personal_data: false
+  used_by:
+    - tests/collect/test_cioins_listing.py
+  notes: "Archive index with two months. Assumed layout, not redacted from a real page (test-fixtures.md asks for saved-redacted; no real page was available)"
+
+- path: collect/cioins/month_2023-05.html
+  kind: synthetic
+  source: cioins
+  sha256: "426057dd49b1f0b937ef545d077bf28d9dce65810f7a4ec18364cd8af9f1c2f0"
+  contains_personal_data: false
+  used_by:
+    - tests/collect/test_cioins_listing.py
+    - tests/collect/test_resume.py
+    - tests/collect/test_verify.py
+  notes: "Two offices, five awards: the same award number in both offices, one motor award, one dead link, one duplicate file. Assumed layout, not redacted from a real page"
+
+- path: collect/cioins/month_empty.html
+  kind: synthetic
+  source: cioins
+  sha256: "1dbab5a0d5c09d0298d284d7339e54c20ad71bd6bdfc67c1137701ca0392359e"
+  contains_personal_data: false
+  used_by:
+    - tests/collect/test_cioins_listing.py
+  notes: "A month with no awards: 0 rows, not an error"

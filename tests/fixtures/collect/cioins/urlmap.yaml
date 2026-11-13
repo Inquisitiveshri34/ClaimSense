@@ -1,0 +1,15 @@
+# What the fake CIOINS site serves (tests/stubs/fake_http.py). Synthetic.
+# The host is the real one so the collector's URL handling is exercised, but
+# the paths are illustrative: the real site's paths are unconfirmed, and no
+# URL in this file is ever fetched.
+"https://cioins.co.in/robots.txt": robots.txt
+"https://cioins.co.in/AwardsHArchive": archive_index.html
+"https://cioins.co.in/AwardsMonthwise/2023/05": month_2023-05.html
+"https://cioins.co.in/AwardsMonthwise/2023/06": month_empty.html
+# Ahmedabad
+"https://cioins.co.in/AwardsMonthwise/2023/05/ahmedabad/0056.pdf": award_text.pdf
+"https://cioins.co.in/AwardsMonthwise/2023/05/ahmedabad/0058.pdf": award_nonhealth.pdf   # motor: filtered, never fetched
+"https://cioins.co.in/AwardsMonthwise/2023/05/ahmedabad/0077.pdf": "@404"                # link rot: failed
+# Bhopal
+"https://cioins.co.in/AwardsMonthwise/2023/05/bhopal/0056.pdf": award_scan.pdf           # same award number as Ahmedabad 0056
+"https://cioins.co.in/AwardsMonthwise/2023/05/bhopal/0061.pdf": award_text.pdf           # same bytes as Ahmedabad 0056: duplicate
