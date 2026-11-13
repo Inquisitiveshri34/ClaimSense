@@ -141,6 +141,7 @@ class CollectConfig(_Section):
     timeout_s: float = Field(gt=0)
     max_retries: int = Field(ge=0)
     backoff_base_s: float = Field(gt=0)
+    retry_after_default_s: float = Field(gt=0)
     stop_after_consecutive_failures: int = Field(ge=1)
     sources: SourcesConfig
 

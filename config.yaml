@@ -24,7 +24,8 @@ collect:
   jitter_s: 0.5
   timeout_s: 30
   max_retries: 3
-  backoff_base_s: 10
+  backoff_base_s: 10               # 10, 20, 40 s between retries after a timeout or 5xx
+  retry_after_default_s: 300       # wait after 429/503 when the site sends no Retry-After
   stop_after_consecutive_failures: 10
   # `enabled` follows docs/data/terms-of-use-audit.md: flip a source only after
   # the audit clears it. Each `audit` block is the machine-readable copy of the
@@ -32,6 +33,8 @@ collect:
   sources:
     cioins:
       enabled: false
+      # UNCONFIRMED: this page was not found when checked on 2026-11-13 (DATA_SOURCES.md).
+      # Confirm the live listing URL, and the listing layout in collect/cioins.py, before any run.
       start: "https://cioins.co.in/AwardsHArchive"
       products: [individual_mediclaim, group_mediclaim, overseas_mediclaim]
       audit:
