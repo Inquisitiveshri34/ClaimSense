@@ -32,6 +32,27 @@ Full checklist, robots.txt capture, permission-request template and reply log: [
 
 ---
 
+## Audit record per source
+
+One row per fact a collector depends on. `UNKNOWN — to verify` means nobody has checked it yet; it is never a guess. This table is the same as the one in [`terms-of-use-audit.md`](docs/data/terms-of-use-audit.md) §1.1, and its URL, licence, redistribution, `enabled` and audit-date rows are the same values as `collect.sources.<name>` in `config.yaml`, which `claimsense.collect.sources` reads.
+
+| | CIOINS (India) | FOS (UK) | FSPO (Ireland) |
+|---|---|---|---|
+| **URL** | `https://cioins.co.in` | `https://www.financial-ombudsman.org.uk` | `https://www.fspo.ie` |
+| **Terms of use** (page, date read) | *Terms & Conditions* PDF, `cioins.co.in/notification/Terms and Conditions.pdf`, read 2026-11-12 | *Legal information*, `financial-ombudsman.org.uk/legal-policy`, read 2026-11-12 | *Re-use of Public Sector Information*, `fspo.ie/governance/reuse.asp`, read 2026-11-12 |
+| **robots.txt rules** for the paths used | UNKNOWN — to verify | UNKNOWN — to verify | UNKNOWN — to verify |
+| **Crawl delay** stated in robots.txt | UNKNOWN — to verify | UNKNOWN — to verify | UNKNOWN — to verify |
+| **Licence** | UNKNOWN — to verify | UNKNOWN — to verify | Re-use of Public Sector Information (PSI) Regulations; attribution required |
+| **Redistribution** of derived, anonymised text | Not allowed | Not allowed | Allowed, with attribution |
+| **`enabled`** in `config.yaml` | `false` | `false` | `true` |
+| **Audit date** | 2026-11-12 | 2026-11-12 | 2026-11-12 |
+
+- **Licence `UNKNOWN` for CIOINS and FOS.** Neither site offers a licence: CIOINS prohibits unauthorised copying and FOS requires prior permission for storage. A licence exists only once a permission reply states its terms (`terms-of-use-audit.md` §7.2). Until that is recorded here and in `config.yaml`, the source registry refuses to load if either source is enabled (`SourceNotCleared`).
+- **robots.txt and crawl delay** have not been captured for any source (`terms-of-use-audit.md` §3 has the command). Until they are, `collect.min_interval_s` applies; a higher stated crawl delay replaces it.
+- **FSPO is enabled on its terms alone.** Its robots.txt row must be verified before the first live collection run (PR 4).
+
+---
+
 ## How the data is handled
 
 | Rule | Where it is enforced |
